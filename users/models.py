@@ -4,27 +4,33 @@ from django.db import models
 
 # Create your models here.
 class MyAccountManager(BaseUserManager):
-    def create_user(self, email, fullname=None, birthday=None, password=None):
+
+    def create_user(self, email, name, password):
         if not email:
-            raise ValueError('Users must have an email address')
+            raise ValueError('Users must have an email address.')
+
+        if not name:
+            raise ValueError('Users must have a name.')
+
+        if not password:
+            raise ValueError('Users must create a password')
 
         user = self.model(
-            Email_Address=self.normalize_email(email),
-            name=self.normalize_email(email),
-            Date_of_Birth=birthday,
+            email=self.normalize_email(email),
+            name=name,
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, Email_Address, password):
+    def create_superuser(self, email, password, name="Muskan"):
         user = self.create_user(
-            Email_Address=self.normalize_email(Email_Address),
+            email=self.normalize_email(email),
+            name=name,
             password=password,
         )
 
-        user.is_admin = True
         user.is_active = True
         user.is_staff = True
         user.is_superuser = True
@@ -32,17 +38,14 @@ class MyAccountManager(BaseUserManager):
 
 
 class Users(AbstractBaseUser):
-    Email_Address = models.EmailField(verbose_name="email", max_length=60, unique=True, blank=True, null=True,
-                                      default=None)
-    Date_of_Birth = models.CharField(max_length=30, blank=True, null=True, default=None)
-    name = models.CharField(max_length=30, blank=True, null=True)
-    username = models.CharField(max_length=30, unique=True, blank=True, null=True)
-    is_admin = models.BooleanField(default=False)
+    email = models.EmailField(verbose_name="email", max_length=60, unique=True)
+    name = models.CharField(max_length=30)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'Email_Address'
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
 
     objects = MyAccountManager()
 
